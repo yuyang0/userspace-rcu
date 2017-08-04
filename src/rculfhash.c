@@ -1522,7 +1522,8 @@ struct cds_lfht *_cds_lfht_new(unsigned long init_size,
 			int flags,
 			const struct cds_lfht_mm_type *mm,
 			const struct rcu_flavor_struct *flavor,
-			pthread_attr_t *attr)
+      pthread_attr_t *attr,
+      void *privdata)
 {
 	struct cds_lfht *ht;
 	unsigned long order;
@@ -1575,11 +1576,12 @@ struct cds_lfht *_cds_lfht_new(unsigned long init_size,
 	max_nr_buckets = max(max_nr_buckets, min_nr_alloc_buckets);
 	init_size = min(init_size, max_nr_buckets);
 
-	ht = mm->alloc_cds_lfht(min_nr_alloc_buckets, max_nr_buckets);
+	ht = mm->alloc_cds_lfht(min_nr_alloc_buckets, max_nr_buckets, privdata);
 	assert(ht);
 	assert(ht->mm == mm);
 	assert(ht->bucket_at == mm->bucket_at);
 
+  ht->privdata = privdata;
 	ht->flags = flags;
 	ht->flavor = flavor;
 	ht->resize_attr = attr;
@@ -1848,7 +1850,7 @@ int cds_lfht_destroy(struct cds_lfht *ht, pthread_attr_t **attr)
 		ret = -EBUSY;
 	if (ht->flags & CDS_LFHT_AUTO_RESIZE)
 		cds_lfht_fini_worker(ht->flavor);
-	poison_free(ht);
+  ht->mm->mm_free(ht->privdata, ht);
 	return ret;
 }
 

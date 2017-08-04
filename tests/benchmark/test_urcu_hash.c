@@ -333,7 +333,7 @@ int main(int argc, char **argv)
 		mainret = 1;
 		goto end;
 	}
-	
+
 	err = sscanf(argv[3], "%lu", &duration);
 	if (err != 1) {
 		show_usage(argc, argv);
@@ -576,7 +576,7 @@ int main(int argc, char **argv)
 				max_hash_buckets_size,
 				(opt_auto_resize ? CDS_LFHT_AUTO_RESIZE : 0) |
 				CDS_LFHT_ACCOUNTING, memory_backend,
-				&rcu_flavor, NULL);
+        &rcu_flavor, NULL, NULL);
 	} else {
 		test_ht = cds_lfht_new(init_hash_size, min_hash_alloc_size,
 				max_hash_buckets_size,

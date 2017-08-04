@@ -133,8 +133,9 @@ struct cds_lfht_node *bucket_at(struct cds_lfht *ht, unsigned long index)
 
 static
 struct cds_lfht *alloc_cds_lfht(unsigned long min_nr_alloc_buckets,
-		unsigned long max_nr_buckets)
+                                unsigned long max_nr_buckets, void *privdata)
 {
+  (void)privdata;
 	unsigned long page_bucket_size;
 
 	page_bucket_size = getpagesize() / sizeof(struct cds_lfht_node);
@@ -152,9 +153,16 @@ struct cds_lfht *alloc_cds_lfht(unsigned long min_nr_alloc_buckets,
 			min_nr_alloc_buckets, max_nr_buckets);
 }
 
+static
+void mm_free(void *privdata, void *ptr) {
+    (void)privdata;
+    poison_free(ptr);
+}
+
 const struct cds_lfht_mm_type cds_lfht_mm_mmap = {
 	.alloc_cds_lfht = alloc_cds_lfht,
 	.alloc_bucket_table = cds_lfht_alloc_bucket_table,
 	.free_bucket_table = cds_lfht_free_bucket_table,
 	.bucket_at = bucket_at,
+  .mm_free = mm_free,
 };

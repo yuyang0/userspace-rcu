@@ -66,6 +66,7 @@ struct ht_items_count;
  * the mm plugin fields, which are used in the fast path.
  */
 struct cds_lfht {
+  void *privdata;
 	/* Initial configuration items */
 	unsigned long max_nr_buckets;
 	const struct cds_lfht_mm_type *mm;	/* memory management plugin */

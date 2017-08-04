@@ -92,6 +92,7 @@ typedef int (*cds_lfht_match_fct)(struct cds_lfht_node *node, const void *key);
 static inline
 void cds_lfht_node_init(struct cds_lfht_node *node)
 {
+  (void)node;
 }
 
 /*
@@ -104,11 +105,14 @@ enum {
 
 struct cds_lfht_mm_type {
 	struct cds_lfht *(*alloc_cds_lfht)(unsigned long min_nr_alloc_buckets,
-			unsigned long max_nr_buckets);
+                                     unsigned long max_nr_buckets, void *privdata);
 	void (*alloc_bucket_table)(struct cds_lfht *ht, unsigned long order);
 	void (*free_bucket_table)(struct cds_lfht *ht, unsigned long order);
 	struct cds_lfht_node *(*bucket_at)(struct cds_lfht *ht,
 			unsigned long index);
+
+  // free memory
+  void (*mm_free)(void *ptr, void *privdata);
 };
 
 extern const struct cds_lfht_mm_type cds_lfht_mm_order;
@@ -125,7 +129,8 @@ struct cds_lfht *_cds_lfht_new(unsigned long init_size,
 			int flags,
 			const struct cds_lfht_mm_type *mm,
 			const struct rcu_flavor_struct *flavor,
-			pthread_attr_t *attr);
+      pthread_attr_t *attr,
+      void *privdata);
 
 /*
  * cds_lfht_new - allocate a hash table.
@@ -161,12 +166,24 @@ struct cds_lfht *cds_lfht_new(unsigned long init_size,
 			unsigned long min_nr_alloc_buckets,
 			unsigned long max_nr_buckets,
 			int flags,
-			pthread_attr_t *attr)
+      pthread_attr_t *attr)
 {
 	return _cds_lfht_new(init_size, min_nr_alloc_buckets, max_nr_buckets,
-			flags, NULL, &rcu_flavor, attr);
+                       flags, NULL, &rcu_flavor, attr, NULL);
 }
 
+static inline
+struct cds_lfht *cds_lfht_new_priv(unsigned long init_size,
+      unsigned long min_nr_alloc_buckets,
+      unsigned long max_nr_buckets,
+      int flags,
+      const struct cds_lfht_mm_type *mm,
+      pthread_attr_t *attr,
+      void *privdata)
+{
+  return _cds_lfht_new(init_size, min_nr_alloc_buckets, max_nr_buckets,
+                       flags, mm, &rcu_flavor, attr, privdata);
+}
 /*
  * cds_lfht_destroy - destroy a hash table.
  * @ht: the hash table to destroy.
